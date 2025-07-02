@@ -5,3 +5,5 @@ scikit-learn
 matplotlib
 numpy
 seaborn
+gspread
+google-auth
