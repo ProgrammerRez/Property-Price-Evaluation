@@ -85,7 +85,7 @@ st.header("📝 Share Your Review")
 
 # Review inputs
 review_city = st.text_input("📍 Area/City Name", placeholder="e.g. Cantt Lahore")
-review_name = st.text_input("👤 Your Name", placeholder="e.g. Umar Bhai")
+review_name = st.text_input("👤 Your Name", placeholder="e.g. Ahmed")
 review_text = st.text_area("💬 Your Review", placeholder="Write your experience here...")
 
 REVIEW_FILE = "reviews.json"
@@ -112,12 +112,4 @@ if st.button("✅ Submit Review"):
     else:
         st.warning("⚠️ Please fill in all fields before submitting.")
 
-# Show reviews
-if stored_reviews:
-    st.markdown("### 💡 Recent Reviews")
-    for rev in reversed(stored_reviews[-5:]):  # show latest 5
-        st.markdown(f"""
-        **📍 {rev['City']}**  
-        _✍️ {rev['Name']}_  
-        > {rev['Review']}
-        """)
+
