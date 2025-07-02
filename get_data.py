@@ -3,6 +3,8 @@ import pandas as pd
 import joblib
 import json
 import gspread
+import requests
+from datetime import datetime
 from google.oauth2.service_account import Credentials
 
 # ------------- Load Model -------------
@@ -12,7 +14,6 @@ model = joblib.load("model.pkl")
 with open("merged_output.json", "r") as f:
     raw_data = json.load(f)
 
-# Convert keys to int
 locality_data = {int(k): v for k, v in raw_data.items()}
 name_to_id = {v["locality"]: k for k, v in locality_data.items()}
 id_to_name = {k: v["locality"] for k, v in locality_data.items()}
@@ -21,7 +22,32 @@ id_to_name = {k: v["locality"] for k, v in locality_data.items()}
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
 client = gspread.authorize(creds)
-sheet = client.open("real_estate_reviews").sheet1
+
+# Sheets
+review_sheet = client.open("real_estate_reviews").worksheet("reviews")
+log_sheet = client.open("real_estate_reviews").worksheet("usage_logs")
+
+# Optional: Ensure headers exist in both sheets
+def ensure_headers():
+    if not review_sheet.get_all_values():
+        review_sheet.append_row(["City/Area", "Name", "Review"])
+    if not log_sheet.get_all_values():
+        log_sheet.append_row([
+            "Timestamp", "IP Address", "Locality", "Area (sqft)",
+            "Bedrooms", "Baths", "Property Type", "Predicted Price"
+        ])
+
+ensure_headers()
+
+# ------------- Helper Functions -------------
+def get_user_ip():
+    try:
+        return requests.get('https://api64.ipify.org?format=json').json()["ip"]
+    except:
+        return "Unknown"
+
+def get_timestamp():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ------------- UI -------------
 st.title("🏠 Real Estate Price Prediction App")
@@ -59,7 +85,6 @@ input_data = {
     **property_type_encoded
 }
 
-# Match model training column order
 column_order = [
     'locality', 'baths', 'area_sqft', 'bedrooms',
     'property_type_Farm House', 'property_type_Flat', 'property_type_House',
@@ -67,7 +92,6 @@ column_order = [
     'property_type_Room', 'property_type_Upper Portion', 'price_per_sqft'
 ]
 
-# Ensure all keys are present
 for col in column_order:
     if col not in input_data:
         input_data[col] = 0
@@ -85,6 +109,23 @@ if st.button("🔮 Predict Property Price"):
     st.subheader("📋 Model Input Data")
     st.write(input_df)
 
+    # ----- Log User Prediction -----
+    try:
+        user_ip = get_user_ip()
+        timestamp = get_timestamp()
+        log_sheet.append_row([
+            timestamp,
+            user_ip,
+            selected_locality_name,
+            area_sqft,
+            bedrooms,
+            baths,
+            property_type,
+            round(predicted_price)
+        ])
+    except Exception as e:
+        st.warning(f"⚠️ Could not log user activity: {e}")
+
 # ------------- Review Section -------------
 st.markdown("---")
 st.header("📝 Share Your Review")
@@ -96,11 +137,9 @@ review_text = st.text_area("💬 Your Review", placeholder="Write your experienc
 if st.button("✅ Submit Review"):
     if review_city and review_name and review_text:
         try:
-            sheet.append_row([review_city.strip(), review_name.strip(), review_text.strip()])
+            review_sheet.append_row([review_city.strip(), review_name.strip(), review_text.strip()])
             st.success("🎉 Thank you! Your review has been submitted.")
         except Exception as e:
             st.error(f"❌ Could not save review: {e}")
     else:
         st.warning("⚠️ Please fill in all fields.")
-
-
