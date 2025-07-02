@@ -103,16 +103,4 @@ if st.button("✅ Submit Review"):
     else:
         st.warning("⚠️ Please fill in all fields.")
 
-# ------------- Show Recent Reviews -------------
-try:
-    all_reviews = sheet.get_all_records()
-    if all_reviews:
-        st.markdown("### 💬 Recent Reviews")
-        for rev in reversed(all_reviews[-5:]):
-            st.markdown(f"""
-            **📍 {rev['City']}**  
-            _✍️ {rev['Name']}_  
-            > {rev['Review']}
-            """)
-except Exception as e:
-    st.error("⚠️ Could not load reviews.")
+
