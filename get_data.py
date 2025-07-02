@@ -3,10 +3,10 @@ import requests
 import datetime
 import pandas as pd
 import os
-import pickle
+import joblib
 
 # === Load your trained model ===
-model = pickle.load(open('model.pkl', 'rb'))
+model = joblib.load('model.pkl', 'rb')
 
 # === Get user's IP ===
 def get_user_ip():
