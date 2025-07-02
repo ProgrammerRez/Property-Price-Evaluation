@@ -90,7 +90,7 @@ st.markdown("---")
 st.header("📝 Share Your Review")
 
 review_city = st.text_input("🏙️ Area/City Name", placeholder="e.g. Cantt Lahore")
-review_name = st.text_input("👤 Your Name", placeholder="e.g. Umar Bhai")
+review_name = st.text_input("👤 Your Name", placeholder="e.g. Musa")
 review_text = st.text_area("💬 Your Review", placeholder="Write your experience here...")
 
 if st.button("✅ Submit Review"):
