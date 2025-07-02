@@ -117,6 +117,3 @@ try:
 except Exception as e:
     st.error("⚠️ Could not load reviews.")
 
-# ------------- Optional Share Link to Google Sheet -------------
-st.markdown("---")
-st.markdown("📤 [Open Review Sheet](https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE)", unsafe_allow_html=True)
