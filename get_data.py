@@ -6,7 +6,7 @@ import os
 import joblib
 
 # === Load your trained model ===
-model = joblib.load('model.pkl', 'rb')
+model = joblib.load('model.pkl')
 
 # === Get user's IP ===
 def get_user_ip():
