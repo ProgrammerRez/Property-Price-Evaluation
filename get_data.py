@@ -3,10 +3,10 @@ import requests
 import datetime
 import pandas as pd
 import os
-import joblib
+import joblib  # or use pickle if you saved the model that way
 
 # === Load your trained model ===
-model = joblib.load('model.pkl')
+model = joblib.load('model.pkl')  # or use pickle.load(open('model.pkl', 'rb')) if you used pickle
 
 # === Get user's IP ===
 def get_user_ip():
@@ -32,24 +32,29 @@ def log_to_csv(data, file_path="user_log.csv"):
 
 # === Streamlit UI ===
 st.title("🏠 Real Estate Price Estimator")
-st.write("Enter property details below to get an estimated price.")
+st.markdown("""
+Welcome! This is a small-scale project to estimate property prices based on a few basic features.
 
-# === Inputs ===
-area = st.number_input("Area (in sq ft)", min_value=500, max_value=10000, step=50)
-bedrooms = st.slider("Bedrooms", 1, 10, 3)
-bathrooms = st.slider("Bathrooms", 1, 10, 2)
-location = st.selectbox("Location", ["Downtown", "Suburbs", "Countryside"])
+If you (or someone you know) has experience in real estate, your feedback is **highly appreciated**! 💬  
+""")
 
-# One-hot encode location
+st.divider()
+
+# === Input Fields ===
+area = st.number_input("📏 Area (in sq ft)", min_value=500, max_value=10000, step=50)
+bedrooms = st.slider("🛏️ Bedrooms", 1, 10, 3)
+bathrooms = st.slider("🛁 Bathrooms", 1, 10, 2)
+location = st.selectbox("📍 Location", ["Downtown", "Suburbs", "Countryside"])
+
+# === One-hot encode the location ===
 location_cols = {
     "location_Downtown": 0,
     "location_Suburbs": 0,
     "location_Countryside": 0
 }
-location_key = f"location_{location}"
-location_cols[location_key] = 1
+location_cols[f"location_{location}"] = 1
 
-# Combine all input features
+# === Combine all features ===
 features = {
     "area": area,
     "bedrooms": bedrooms,
@@ -57,16 +62,16 @@ features = {
     **location_cols
 }
 
-# === Prediction & Logging ===
-if st.button("Predict Price"):
+# === Predict & Log ===
+if st.button("🚀 Predict Price"):
     user_ip = get_user_ip()
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     price = predict_price(features)
 
     # Show result
-    st.success(f"🏷️ Estimated Price: ${price}")
+    st.success(f"🏷️ Estimated Price: **${price}**")
 
-    # Log entry as a structured dictionary
+    # Log to CSV
     log_data = {
         "Timestamp": timestamp,
         "User IP": user_ip,
@@ -76,7 +81,9 @@ if st.button("Predict Price"):
         "Location": location,
         "Predicted Price ($)": price
     }
+    log_to_csv(log_data)
 
-    log_to_csv(log_data)  # Save to CSV
+    st.info("✅ Your input has been logged for model improvement. Thank you!")
 
-    st.info("Your prediction has been logged. Thank you for the input!")
+st.divider()
+st.caption("🔒 Your IP is only used for anonymous feedback tracking. No personal data is stored.")
